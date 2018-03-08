@@ -1,17 +1,16 @@
 <template>
   <div id="app">
-    <a href="https://valanter.com"><img src="./assets/logo-valanter.png"></a>
-    <SimpleStorage/>
+    <Lottery/>
   </div>
 </template>
 
 <script>
-import SimpleStorage from './components/SimpleStorage'
+import Lottery from './components/Lottery'
 
 export default {
   name: 'App',
   components: {
-    SimpleStorage
+    Lottery
   }
 }
 </script>

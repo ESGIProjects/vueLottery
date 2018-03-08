@@ -1,8 +1,8 @@
 {
-  "name": "vuesimplestorage",
+  "name": "vuelottery",
   "version": "1.0.0",
-  "description": "Simple Storage smart contract interface with Vuejs",
-  "author": "Raphaël <raphael@valanter.com>",
+  "description": "Lottery smart contract interface with Vuejs",
+  "author": "Jason Pierna & Kévin Le <jasonpierna@icloud.com>",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
