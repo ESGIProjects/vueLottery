@@ -169,7 +169,8 @@
           <p>
             Click on the desired number to play the lottery! This costs 10,000 wei. Winner gets everything!
           </p>
-          <img  v-if="deploying == true" width="32" src="@/assets/loading.gif" />
+
+          <img  v-if="executing == true" width="32" src="@/assets/loading.gif" />
 
             <table class="lottery">
               <tr class="col-md-12">
@@ -192,6 +193,14 @@
 
         <div class="col-md-6 col-md-offset-1 text-left">
 
+          <div class="form-group" v-if="playedValue">
+              <div class="col-md-12">
+                <div class="alert alert-success" role="alert">
+                  <strong>You just played {{ playedValue }}!</strong>
+                </div>
+              </div>
+          </div>
+
           <div class="form-group" v-if="gameOverTitle">
               <div class="col-md-12">
                 <div class="alert alert-warning" role="alert">
@@ -205,7 +214,7 @@
               <div class="col-md-12 text-center">
                 <button type="button"
                   class="btn btn-success"
-                  @click.prevent="getGains">Refresh</button>
+                  @click.prevent="getState()">Refresh</button>
               </div>
             </div>
 
@@ -229,7 +238,7 @@ import Tx from "ethereumjs-tx";
 import Units from "ethereumjs-units";
 
 let contractAbi =
-  '[{"constant":true,"inputs":[],"name":"getHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"v","type":"uint256"}],"name":"uintToString","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"testx64","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getGains","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getNumber","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getWinners","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getPlayers","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getSolution","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getState","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"checkWinners","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"etherreceiver","type":"address"},{"name":"amount","type":"uint256"}],"name":"fundtransfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"number","type":"uint256"}],"name":"play","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"payMe","outputs":[{"name":"success","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]';
+  '[{"constant":true,"inputs":[{"name":"inStr","type":"string"},{"name":"v","type":"uint256"}],"name":"appendUintToString","outputs":[{"name":"str","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getGains","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getWinners","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getState","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getPlayers","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getSolution","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"checkWinners","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"etherreceiver","type":"address"},{"name":"amount","type":"uint256"}],"name":"fundtransfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"number","type":"uint256"}],"name":"play","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"payMe","outputs":[{"name":"success","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]';
 
 let web3 = new Web3();
 
@@ -240,7 +249,7 @@ export default {
       title: "VueLottery",
       msg: "Lottery Ethereum smart contract interface with Vuejs",
       nodeUrl: "https://ropsten.infura.io/78ug1ovJZrudvaEsb3UV",
-      contractAddress: "0x19e493beeb769a23754ffb9317582a0125ce7526",
+      contractAddress: "0xe109ce39f07b5f3168ef946421317c48a0edffb7",
       address: "",
       privateKey: "",
       balance: "",
@@ -428,6 +437,9 @@ export default {
     },
     // Play the game
     play(value) {
+
+      this.playedValue = ""+value;
+
       console.log(
         "Set value:" +
           value +
