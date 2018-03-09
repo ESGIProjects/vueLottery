@@ -169,46 +169,7 @@
                   *hash*
                 </div>
               </div>
-            </div>
-
-          
-
-  <!--
-          <h3>New value in the storage</h3>
-          <p>
-            Interact with the smart contract to set a new storage value.
-          </p>
-
-          <form class="form-horizontal">
-
-            <div class="form-group">
-              <label for="storageValue" class="col-md-3 control-label text-right">New storage value</label>
-              <div class="col-md-2">
-                <input
-                  type="text"
-                  id="storageValue"
-                  class="form-control"
-                  value="storageValue" v-model="storageValue" />
-              </div>
-              <div class="col-md-2">
-                <button type="button" v-if="executing == false"
-                  class="btn btn-success"
-                  @click.prevent="setValue">Set Value</button>
-                  <img  v-if="executing == true" width="32" src="@/assets/loading.gif" />
-              </div>
-            </div>
-
-          </form>
-
-          <div class="row" v-if="execTransactionHash">
-            <div class="col-md-12 text-center">
-              <div class="alert alert-success" role="alert"><strong>Txhash:</strong> {{ execTransactionHash }}</div>
-            </div>
-          </div>
-
-          <hr /> -->
-
-          
+            </div>          
         </div>
 
 
@@ -221,19 +182,19 @@
 
             <table class="lottery">
               <tr class="col-md-12">
-                <td class=""><button>1</button></td>
-                <td class=""><button>2</button></td>
-                <td class=""><button>3</button></td>
+                <td class=""><button @click.prevent="play(1)">1</button></td>
+                <td class=""><button @click.prevent="play(2)">2</button></td>
+                <td class=""><button @click.prevent="play(3)">3</button></td>
               </tr>
               <tr class="col-md-12">
-                <td class=""><button>4</button></td>
-                <td class=""><button>5</button></td>
-                <td class=""><button>6</button></td>
+                <td class=""><button @click.prevent="play(4)">4</button></td>
+                <td class=""><button @click.prevent="play(5)">5</button></td>
+                <td class=""><button @click.prevent="play(6)">6</button></td>
               </tr>
               <tr class="col-md-12">
-                <td class=""><button>7</button></td>
-                <td class=""><button>8</button></td>
-                <td class=""><button>9</button></td>
+                <td class=""><button @click.prevent="play(7)">7</button></td>
+                <td class=""><button @click.prevent="play(8)">8</button></td>
+                <td class=""><button @click.prevent="play(9)">9</button></td>
               </tr>
             </table>
         </div>
@@ -252,7 +213,7 @@ import Tx from "ethereumjs-tx";
 import Units from "ethereumjs-units";
 
 let contractAbi =
-  '[{"constant":false,"inputs":[{"name":"x","type":"uint256"}],"name":"set","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"get","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]';
+  '[{"constant":true,"inputs":[],"name":"getRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getFund","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getGains","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getSize","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getSolution","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"checkWinners","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"etherreceiver","type":"address"},{"name":"amount","type":"uint256"}],"name":"fundtransfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"transfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"stop","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"number","type":"uint256"}],"name":"play","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"payMe","outputs":[{"name":"success","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]';
 let contractBytecode =
   "0x6060604052341561000f57600080fd5b60d38061001d6000396000f3006060604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c14606e575b600080fd5b3415605857600080fd5b606c60048080359060200190919050506094565b005b3415607857600080fd5b607e609e565b6040518082815260200191505060405180910390f35b8060008190555050565b600080549050905600a165627a7a7230582030036eed4617b76ee4550080d2fced7bfbc3ddba9d7b7212901e539bd92c6f5a0029";
 
@@ -278,8 +239,8 @@ export default {
     return {
       title: "VueLottery",
       msg: "Lottery Ethereum smart contract interface with Vuejs",
-      nodeUrl: "http://localhost:8545",
-      contractAddress: "0x1e29f8f1674da1647e193e7a69767736f947a06a",
+      nodeUrl: "https://ropsten.infura.io/78ug1ovJZrudvaEsb3UV",
+      contractAddress: "0x0c1a46cafd6008d8d5a3b53d8cd6ed9259941dc0",
       address: "",
       privateKey: "",
       balance: "",
@@ -461,11 +422,11 @@ export default {
         }
       });
     },
-    // Set storage value
-    setValue() {
+    // Play the game
+    play(value) {
       console.log(
         "Set value:" +
-          this.storageValue +
+          value +
           " to contract: " +
           this.contractAddress +
           " on node: " +
@@ -477,10 +438,6 @@ export default {
 
       // Get keys
       var privateKey = new Buffer(this.privateKey, "hex");
-      /*
-      let account = web3.eth.accounts.privateKeyToAccount(privateKey);
-      console.log(account)
-      */
 
       var abi = JSON.parse(contractAbi);
       // Exec contract
@@ -517,8 +474,8 @@ export default {
               console.log("Nonce hex : ", nonce);
 
               // Execute the smart contract method
-              var newValue = parseInt(self.storageValue);
-              var contractCallData = contract.methods.set(newValue);
+              var newValue = parseInt(value);
+              var contractCallData = contract.methods.play(newValue);
               console.log("contractCallData : ", contractCallData);
 
               // Get payload
@@ -532,7 +489,8 @@ export default {
                 nonce: nonceHex,
                 gasPrice: gasPriceHex,
                 gasLimit: gasLimitHex,
-                value: "0x00",
+                value: "0x2710",
+                // value: web3.toWei("0.00000000000001", "ether"),
                 from: self.address,
                 to: self.contractAddress,
                 data: payload
@@ -548,6 +506,8 @@ export default {
                 "Raw transaction ready to be sent: ",
                 "0x" + serializedTx.toString("hex")
               );
+
+              
 
               // Send signed transaction
               web3.eth
@@ -568,16 +528,13 @@ export default {
                   console.log(confirmationNumber);
                   console.log(receipt);
                 });
-              // .then(function(newContractInstance){
-              //   console.log(newContractInstance) // instance with the new contract address
-              // })
             }
           });
         }
       });
     },
-    // Get storage value
-    getValue() {
+    // Get hash value
+    getHash() {
       console.log("Get contract value");
 
       // Dial node
@@ -589,7 +546,27 @@ export default {
       console.log("start call get");
       let self = this;
       contract.methods
-        .get()
+        .getHash()
+        .call()
+        .then(function(result) {
+          console.log("Result: " + result);
+          self.retreivedValue = result;
+        });
+    },
+    // Get gains value
+    getGains() {
+      console.log("Get contract value");
+
+      // Dial node
+      this.dialNode();
+
+      var abi = JSON.parse(contractAbi);
+      // Exec contract
+      var contract = new web3.eth.Contract(abi, this.contractAddress);
+      console.log("start call get");
+      let self = this;
+      contract.methods
+        .getGains()
         .call()
         .then(function(result) {
           console.log("Result: " + result);
