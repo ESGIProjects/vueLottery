@@ -15,7 +15,7 @@
 
         <!-- Left side -->
         <div class="col-md-5 text-left">
-          <h3>Node informations</h3>
+          <!--<h3>Node informations</h3>
           <p>
             The Euthereum node url to communicate with.
           </p>
@@ -31,7 +31,7 @@
               </div>
             </div>
 
-          <hr />
+          <hr />-->
           <h3>Access the lottery</h3>
           <p>
             Enter an existing game address or launch a new game.
@@ -47,29 +47,13 @@
                   id="contractAddress"
                   class="form-control"
                   value="contractAddress" v-model="contractAddress"
-                   @focus="$event.target.select()"/>
+                   @focus="$event.target.select()" @paste="getHash(); getState();"/>
               </div>
             </div>
 
-              <!--<div class="form-group">
-                <div class="col-md-offset-4 col-md-1 text-center">
-                  Or
-                </div>
-                <div class="col-md-2">
-                  <button type="button" v-if="deploying == false"
-                    class="btn btn-success"
-                    @click.prevent="deployContract">Deploy a contact</button>
-                    <img  v-if="deploying == true" width="32" src="@/assets/loading.gif" />
-                </div>
-              </div>   -->        
-
           </form>
 
-          <div class="row" v-if="deployTransactionHash">
-            <div class="col-md-12 text-center">
-              <div class="alert alert-success" role="alert"><strong>Txhash:</strong> {{ deployTransactionHash }}</div>
-            </div>
-          </div>
+          <div v-if="provablyFairHash"> <!-- gain div -->
 
         <h3>Obtain the game's current gain</h3>
           <p>
@@ -82,16 +66,18 @@
               <div class="col-md-12 text-center">
                 <button type="button"
                   class="btn btn-success"
-                  @click.prevent="getValue">How much?</button>
+                  @click.prevent="getGains">How much?</button>
               </div>
             </div>
 
           </form>
 
-          <div class="row" v-if="retreivedValue">
+          <div class="row" v-if="currentGains">
             <div class="col-md-12 text-center">
-              <div class="alert alert-success" role="alert">{{ retreivedValue }}</div>
+              <div class="alert alert-success" role="alert">{{ currentGains }} wei</div>
             </div>
+          </div>
+
           </div>
 
         </div>
@@ -160,25 +146,30 @@
           </form>
 
 
-            <div class="form-group">
+            <div class="form-group" v-if="provablyFairHash">
               <div class="col-md-12">
                 <div class="alert alert-info" role="alert">
                   <strong>Provably fair</strong><br />
                   The lottery answer is already crypted here. After the end of the game, you will be able to decrypt it.
                   <br /> <br />
-                  *hash*
+                  {{ provablyFairHash }}
                 </div>
               </div>
             </div>          
         </div>
+      </div>
 
 
-        <div class="col-md-8 col-md-offset-2 text-center">
+      <!-- bottom -->
+      <div class="row" v-if="provablyFairHash && privateKey">
+
+
+        <div class="col-md-5 text-center">
           <h3 class="lottery">Play the lottery!</h3>
           <p>
-            Click on the desired number to play the lottery! This costs X ETH. Winner gets everything!
+            Click on the desired number to play the lottery! This costs 10,000 wei. Winner gets everything!
           </p>
-
+          <img  v-if="deploying == true" width="32" src="@/assets/loading.gif" />
 
             <table class="lottery">
               <tr class="col-md-12">
@@ -199,9 +190,34 @@
             </table>
         </div>
 
+        <div class="col-md-6 col-md-offset-1 text-left">
 
+          <div class="form-group" v-if="gameOverTitle">
+              <div class="col-md-12">
+                <div class="alert alert-warning" role="alert">
+                  <strong>{{ gameOverTitle }}</strong><br />
+                  {{ gameOverMessage }}
+                </div>
+              </div>
+          </div>
+
+          <div class="form-group" v-if="gameState == true">
+              <div class="col-md-12 text-center">
+                <button type="button"
+                  class="btn btn-success"
+                  @click.prevent="getGains">Refresh</button>
+              </div>
+            </div>
+
+        </div>
 
       </div>
+
+      <div class="row footer"></div>
+
+
+
+      
     </div>
   </div>
 </template>
@@ -213,39 +229,27 @@ import Tx from "ethereumjs-tx";
 import Units from "ethereumjs-units";
 
 let contractAbi =
-  '[{"constant":true,"inputs":[],"name":"getRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getFund","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getGains","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getSize","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getSolution","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"checkWinners","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"etherreceiver","type":"address"},{"name":"amount","type":"uint256"}],"name":"fundtransfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"transfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"stop","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"number","type":"uint256"}],"name":"play","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"payMe","outputs":[{"name":"success","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]';
-let contractBytecode =
-  "0x6060604052341561000f57600080fd5b60d38061001d6000396000f3006060604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c14606e575b600080fd5b3415605857600080fd5b606c60048080359060200190919050506094565b005b3415607857600080fd5b607e609e565b6040518082815260200191505060405180910390f35b8060008190555050565b600080549050905600a165627a7a7230582030036eed4617b76ee4550080d2fced7bfbc3ddba9d7b7212901e539bd92c6f5a0029";
-
-let contractSource = `pragma solidity ^0.4.0;
-
-contract SimpleStorage {
-    uint storedData;
-
-    function set(uint x) public {
-        storedData = x;
-    }
-
-    function get() public constant returns (uint) {
-        return storedData;
-    }
-}`;
+  '[{"constant":true,"inputs":[],"name":"getHash","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"v","type":"uint256"}],"name":"uintToString","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"testx64","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getGains","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getNumber","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getWinners","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getPlayers","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getSolution","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getState","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"checkWinners","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"etherreceiver","type":"address"},{"name":"amount","type":"uint256"}],"name":"fundtransfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"number","type":"uint256"}],"name":"play","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"payMe","outputs":[{"name":"success","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]';
 
 let web3 = new Web3();
 
 export default {
-  name: "VueSimpleStorage",
+  name: "VueLottery",
   data() {
     return {
       title: "VueLottery",
       msg: "Lottery Ethereum smart contract interface with Vuejs",
       nodeUrl: "https://ropsten.infura.io/78ug1ovJZrudvaEsb3UV",
-      contractAddress: "0x0c1a46cafd6008d8d5a3b53d8cd6ed9259941dc0",
+      contractAddress: "0x19e493beeb769a23754ffb9317582a0125ce7526",
       address: "",
       privateKey: "",
       balance: "",
-      storageValue: "",
-      retreivedValue: "",
+      provablyFairHash: "",
+      currentGains: "",
+      playedValue: "",
+      gameState: false,
+      gameOverTitle: "",
+      gameOverMessage: "",
       deployTransactionHash: "",
       execTransactionHash: "",
       deploying: false,
@@ -460,10 +464,7 @@ export default {
           var gasPriceHex = web3.utils.numberToHex(gasPrice);
 
           // Get nonce
-          web3.eth.getTransactionCount(self.address, function(
-            nonceError,
-            nonce
-          ) {
+          web3.eth.getTransactionCount(self.address, function(nonceError, nonce) {
             if (nonceError) {
               console.log("Nonce error : ", nonceError);
               self.executing = false;
@@ -490,7 +491,6 @@ export default {
                 gasPrice: gasPriceHex,
                 gasLimit: gasLimitHex,
                 value: "0x2710",
-                // value: web3.toWei("0.00000000000001", "ether"),
                 from: self.address,
                 to: self.contractAddress,
                 data: payload
@@ -505,9 +505,7 @@ export default {
               console.log(
                 "Raw transaction ready to be sent: ",
                 "0x" + serializedTx.toString("hex")
-              );
-
-              
+              );              
 
               // Send signed transaction
               web3.eth
@@ -549,8 +547,8 @@ export default {
         .getHash()
         .call()
         .then(function(result) {
-          console.log("Result: " + result);
-          self.retreivedValue = result;
+          console.log("Provably fair hash: " + result);
+          self.provablyFairHash = result;
         });
     },
     // Get gains value
@@ -569,8 +567,79 @@ export default {
         .getGains()
         .call()
         .then(function(result) {
-          console.log("Result: " + result);
-          self.retreivedValue = result;
+          console.log("Current gains: " + result);
+          self.currentGains = result;
+        });
+    },
+    // Get game state
+    getState() {
+      console.log("Get game state");
+
+      // Dial node
+      this.dialNode();
+
+      var abi = JSON.parse(contractAbi);
+      // Exec contract
+      var contract = new web3.eth.Contract(abi, this.contractAddress);
+      console.log("start call get");
+      let self = this;
+      contract.methods
+        .getState()
+        .call()
+        .then(function(result) {
+          console.log("Game state: " + result);
+
+          self.gameState = result;
+          
+          if (result) {
+            self.gameOverTitle = "Not over";
+            self.gameOverMessage = "The game is not over! The answer and the hash method will be available soon.";
+          } else {
+            self.getRandom();
+          }
+        });
+    },
+    // Get random number
+    getRandom() {
+      console.log("Get random number");
+
+      // Dial node
+      this.dialNode();
+
+      var abi = JSON.parse(contractAbi);
+      // Exec contract
+      var contract = new web3.eth.Contract(abi, this.contractAddress);
+      console.log("start call get");
+      let self = this;
+      contract.methods
+        .getRandom()
+        .call()
+        .then(function(result) {
+          console.log("Random " + result);
+          self.randomNumber = result;
+          
+          self.getSolution();
+        });
+    },
+    // Get solution
+    getSolution() {
+      console.log("Get solution");
+
+      // Dial node
+      this.dialNode();
+
+      var abi = JSON.parse(contractAbi);
+      // Exec contract
+      var contract = new web3.eth.Contract(abi, this.contractAddress);
+      console.log("start call get");
+      let self = this;
+      contract.methods
+        .getSolution()
+        .call()
+        .then(function(result) {
+          console.log("Solution: " + result);
+          self.gameOverTitle = "Game over!";
+          self.gameOverMessage = "The game is over! The answer was " + result + ". You can verify by hashing the sum of the answer with the magic number " +self.randomNumber+" using SHA256.";
         });
     }
   }
@@ -604,5 +673,9 @@ table.lottery td {
 table.lottery td button {
   width: 75px;
   height: 75px;
+}
+
+div.footer {
+  height: 50px;
 }
 </style>
